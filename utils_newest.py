@@ -1,3 +1,4 @@
+# import relevant packages
 import os
 import numpy as np
 import scipy as sp
@@ -5,16 +6,17 @@ from scipy import stats
 from scipy.io import loadmat
 import pandas as pd
 import h5py
-
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
+# import visualisation packages
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 from IPython import embed as shell
 
+# set visualisation specifications
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 sns.set(style='ticks', font='Arial', font_scale=1, rc={
@@ -61,8 +63,6 @@ def make_epochs(df, df_meta, locking, start, dur, measure, fs, baseline=False, b
     # locking_inds = np.array(df['time'].searchsorted(df_meta.loc[~df_meta[locking].isna(), locking]).ravel())
     locking_inds = np.array(df['time'].searchsorted(df_meta[locking]).ravel())
     # locking_inds = np.array([find_nearest(np.array(df['time']), t) for t in df_meta[locking]])
-    
-    # print(locking_inds)
 
     start_inds = locking_inds + int(start/(1/fs))
     end_inds = start_inds + int(dur/(1/fs)) - 1
@@ -105,7 +105,7 @@ def load_data(raw_dir, n_jobs=24):
     backend = 'loky'
     # load_data_session(raw_dir, 'ChangeDetectionConflict', '2026', '2020-01-21_12-50-34')
     res = Parallel(n_jobs=n_jobs, verbose=1, backend=backend)(delayed(load_data_session)(*session)
-                                                                            for session in tqdm(all_sessions))
+                                                                               for session in tqdm(all_sessions))
 
     # unpack:
     df = pd.concat(res[i][0] for i in range(len(res)))
@@ -249,6 +249,7 @@ def load_data_session(raw_dir, exp, subj, ses):
     epochs_s_lick = []
     epochs_s_stim_z = []
     epochs_s_lick_z = []    
+    
     if os.path.exists(os.path.join(raw_dir, exp, subj, ses, 'spikeData.mat')):
         df['spike'] = 1
         spike_mat = loadmat(os.path.join(raw_dir, exp, subj, ses, 'spikeData.mat'))['spikeData']
@@ -272,7 +273,6 @@ def load_data_session(raw_dir, exp, subj, ses):
         min_coverage   = 0.7   # Select on coverage throughout the session (fraction of session):
         sign_resp      = 0     # Whether any condition needs to show a significant response
         for i in range(df_spike_mat.shape[0]):
-
             
             cell_id = df_spike_mat['cell_ID'].iloc[i]
             cell_type = int(df_spike_mat['celltype'].iloc[i])
