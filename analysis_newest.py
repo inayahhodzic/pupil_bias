@@ -1,3 +1,4 @@
+# import relevant packages
 import os
 import numpy as np
 import scipy as sp
@@ -6,14 +7,16 @@ from scipy.io import loadmat
 import pandas as pd
 import h5py
 
+# import visualisation packages
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# import utilities
 from IPython import embed as shell
-
 import utils
 
+# set figure specifications
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 sns.set(style='ticks', font='Arial', font_scale=1, rc={
@@ -185,13 +188,13 @@ def plot_response(df, epochs_s_stim, measure='mean'):
     # match:
     df, epochs_s_stim = utils.match_meta_epochs(df, epochs_s_stim)
 
-    # # remove outliers:
-    # early = df.groupby(['subject_id', 'session_id', 'outcome'])['early'].mean().groupby(['subject_id', 'session_id']).mean().reset_index()
-    # early['z'] = (early['early'] - early['early'].mean()) / early['early'].std()
-    # early = early.loc[(early['z']>-2)&(early['z']<2),:]
-    # df = df.loc[df[['subject_id', 'session_id']].set_index(['subject_id', 'session_id']).index.isin(
-    #             early.loc[:, ['subject_id', 'session_id']].set_index(['subject_id', 'session_id']).index),:]
-    # epochs_s_stim = epochs_s_stim.loc[epochs_s_stim.index.droplevel(list(range(2,13))).isin(early.loc[:, ['subject_id', 'session_id']].set_index(['subject_id', 'session_id']).index),:]
+    # remove outliers:
+    early = df.groupby(['subject_id', 'session_id', 'outcome'])['early'].mean().groupby(['subject_id', 'session_id']).mean().reset_index()
+    early['z'] = (early['early'] - early['early'].mean()) / early['early'].std()
+    early = early.loc[(early['z']>-2)&(early['z']<2),:]
+    df = df.loc[df[['subject_id', 'session_id']].set_index(['subject_id', 'session_id']).index.isin(
+                early.loc[:, ['subject_id', 'session_id']].set_index(['subject_id', 'session_id']).index),:]
+    epochs_s_stim = epochs_s_stim.loc[epochs_s_stim.index.droplevel(list(range(2,13))).isin(early.loc[:, ['subject_id', 'session_id']].set_index(['subject_id', 'session_id']).index),:]
 
     # plot:
     plt_nr = 1
@@ -233,16 +236,12 @@ def plot_response(df, epochs_s_stim, measure='mean'):
     # plt.ylabel('Modality bias')
     # plt_nr+=1
 
-    # shell()
-
     ax = fig.add_subplot(1,4,plt_nr)
     bias = df.groupby(['session_id'])['modality_bias'].mean()
     if measure == 'mean':
         early = df.groupby(['session_id', 'outcome'])['early'].mean().groupby('session_id').mean()
     elif measure == 'diff':
         early = df.groupby(['session_id', 'outcome'])['early'].mean().groupby('session_id').diff().loc[::2]
-    
-    # shell()
     
     r,p = sp.stats.pearsonr(bias, early)
     sns.regplot(x=early, y=bias)
@@ -390,14 +389,10 @@ for data_split in ['pupil_spike']:
     df = df.loc[~df['early'].isna(),:].reset_index(drop=True)
     df = df.loc[~df['late'].isna(),:].reset_index(drop=True)
 
-    # shell()
-
     # df['early'] = df['early'] - df['baseline']
     # df['late'] = df['late'] - df['baseline']
     # df['late2'] = df['late2'] - df['baseline']
-
-    shell()
-
+    
     #baseline activity and layers
     baseline_SG = epochs_s_stim.query("(area=='V1')&(layer=='SG')").groupby(['subject_id', 'session_id', 'trial_id']).mean().loc[:,(x>-0.35)&(x<-0.1)].mean(axis=1).reset_index()
     baseline_SG.columns = ['subject_id', 'session_id', 'trial_id', 'baseline_SG']
@@ -530,8 +525,6 @@ for data_split in ['pupil_spike']:
     # df['nr_trials_total'] = df.groupby(['session_id'])['trial_id'].transform('count')
     # df = df.loc[df['nr_trials_total']>100,:]
 
-
-
     def trial_selection(df):
         return df.loc[(df['trial_id']>10)&(df['trial_id']<(df['trial_id'].max()-10))]
     df = df.groupby(['session_id']).apply(trial_selection).reset_index(drop=True)
@@ -586,10 +579,7 @@ for data_split in ['pupil_spike']:
     plot_pupil_physio(df.loc[(df['trial_type']=='visual')&(df['outcome']==0),:], x='pupil_stim_b', y='late2')
     plt.tight_layout()
 
-
-
     # mdf, fig = plot_pupil_physio(df.loc[(df['trial_type']=='visual')&(df['outcome']==0)&(df['rt']>=0.4),:], x='pupil_lick', y='early')
-
     # mdf, fig = plot_pupil_physio(df.loc[(df['trial_type']=='visual')&(df['outcome']==0)&(df['rt']>=0.4),:], x='pupil_lick', y='late2')
 
     # plot as function of RT
@@ -624,7 +614,6 @@ for data_split in ['pupil_spike']:
     ax.spines['right'].set_visible(False)
     plt.tight_layout()
     fig.savefig('figs/rt_control_{}.pdf'.format(data_split))
-    
 
     # statistical testing pupil baseline
     import scipy.stats as stats
@@ -635,7 +624,6 @@ for data_split in ['pupil_spike']:
 
     t_statistic, p_value = stats.ttest_ind(group0, group1)
 
-    
     # df['pupil_bin'] = df.groupby(['session_id', 'trial_type'])['pupil_stim_b'].apply(pd.qcut, q=8, labels=False, duplicates='drop')
     # res = df.loc[(df['trial_type']=='visual')&~df['early'].isna(),:].groupby(['session_id', 'pupil_bin'])['early'].mean().reset_index()
 
@@ -666,17 +654,7 @@ for data_split in ['pupil_spike']:
     # plt.figure()
     # sns.pointplot(x='pupil_bin', y='late2',errorbar='se', data=res)
     
-
-
-
-
     # sns.pointplot(x='pupil_bin', y='early', hue='trial_type', errorbar='se', data=res)
-
-
-
-
-
-
 
     # linear_model(df, y='moving_bias')
     # linear_model(df, y='moving_correct')
@@ -684,12 +662,7 @@ for data_split in ['pupil_spike']:
     # # linear_model(df.loc[(~df['early'].isna())&df['outcome']==0,:], y='early', x='rt', q=3)
     # linear_model(df.loc[~df['early'].isna(),:], x='correct', y='early', q=2)
 
-
     # linear_model(df.loc[df['outcome']==0,:], y='rt', early_measure='late', q=3)
-    
-
-
-
 
     # vc = {'session_id': '0 + C(session_id)'}
     # md = smf.mixedlm("correct ~ early * trial_type * pupil_stim_b",
@@ -699,9 +672,6 @@ for data_split in ['pupil_spike']:
     #                     data=df.loc[:,:],)
     # mdf = md.fit()
     # print(mdf.summary())
-
-
-
  
     ax= fig.add_subplot(121)
 
@@ -771,13 +741,11 @@ for data_split in ['pupil_spike']:
     plt.title('Average accuracy per session \n on visual hit trials', fontsize=fontsize)
     plt.tight_layout()
 
-
-    ##
+    # plot reaction time of visual trials
     ax2 = fig.add_subplot(grid[1])
     colors = sns.color_palette('flare')
     fontsize=9
     plt.hist(df.loc[df['trial_type']=='visual', 'rt'], bins=20, color=colors[-1])
-    #plt.hist(df.loc[df['rt']>0.5, 'rt'], bins=20)
     plt.axvline(0.525, color='dimgray', linestyle='--')
     plt.xlabel('Reaction time (s)', fontsize=fontsize, labelpad=8)
     plt.ylabel('Number of trials', fontsize=fontsize, labelpad=8)
